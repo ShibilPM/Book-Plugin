@@ -52,23 +52,20 @@ function bk_create_cpt() {
   'can_export'          => true,
   'exclude_from_search' => false,
  //'taxonomies' => array( 'genres' ),
- 'rewrite' => array( 'slug' => 'book' ),
- 'publicly_queryable'  => true,
- 'capability_type'     => 'page'
-);
+  'rewrite' => array( 'slug' => 'book' ),
+  'publicly_queryable'  => true,
+  'capability_type'     => 'page'
+  );
 
 //Registering Custom Post Type
 
 register_post_type( 'books', $args );
-
-
 
 }
 
 //hook into the init action and call bk_create_cpt when it fires
 
 add_action('init', 'bk_create_cpt', 0 );
-
 
 /**************************************************************
     2. Creating a custom hierarchical taxonomy Book Category
@@ -77,7 +74,6 @@ add_action('init', 'bk_create_cpt', 0 );
 function bk_create_ht() {
 
 // Adding new taxonomy, hierarchical like categories
-
 
 $labels = array(
   'name' => _x( 'Categories', 'taxonomy general name' ),
@@ -96,18 +92,19 @@ $labels = array(
 //Registering The Taxanomy
 
 register_taxonomy('subjects',array('books'), array(
-'hierarchical' => true,
-'labels' => $labels,
-'show_ui' => true,
-'show_in_rest' => true,
-'show_admin_column' => true,
-'query_var' => true,
-'rewrite' => array( 'slug' => 'categories' )
+  'hierarchical' => true,
+  'labels' => $labels,
+  'show_ui' => true,
+  'show_in_rest' => true,
+  'show_admin_column' => true,
+  'query_var' => true,
+  'rewrite' => array( 'slug' => 'categories' )
 ));
 
 }
 
 //hook into the init action and call bk_create_ht when it fires
+
 add_action( 'init', 'bk_create_ht', 0 );
 
 /**************************************************************
@@ -136,16 +133,67 @@ $labels = array(
 //Register The Taxanomy
 
 register_taxonomy('custom',array('books'), array(
-'hierarchical' => false,
-'labels' => $labels,
-'show_ui' => true,
-'show_in_rest' => true,
-'show_admin_column' => true,
-'query_var' => true,
-'rewrite' => array( 'slug' => 'tags' )
+  'hierarchical' => false,
+  'labels' => $labels,
+  'show_ui' => true,
+  'show_in_rest' => true,
+  'show_admin_column' => true,
+  'query_var' => true,
+  'rewrite' => array( 'slug' => 'tags' )
 ));
 
 }
 
 //hook into the init action and call bk_create_nht when it fires
+
 add_action( 'init', 'bk_create_nht', 0 );
+
+
+/***************************************************************
+   4. Creating a custom meta box to save book meta information
+****************************************************************/
+
+function bk_create_meta_box() {
+
+  add_meta_box( 'bk-cpt-mtbox', 'Details Metabox', 'bk_mtbox_function', 'books', 'side', 'high' );
+
+}
+
+add_action( 'add_meta_boxes', 'bk_create_meta_box' );
+
+function bk_mtbox_function($post) {
+  wp_nonce_field( plugin_basename( __FILE__ ), 'bk_mtbox_function_nonce' );
+  echo '<label for="book_author"></label><br>';
+  echo '<input type="text" id="book_author" name="book_author" placeholder="Author" /><br>';
+  echo "<br>";
+  echo '<label for="book_price"></label><br>';
+  echo '<input type="text" id="book_price" name="book_price" placeholder="Enter the Price" /><br>';
+  echo "<br>";
+  echo '<label for="book_publisher"></label><br>';
+  echo '<input type="text" id="book_publisher" name="book_publisher" placeholder="Publisher" /><br>';
+}
+
+add_action( 'save_post', 'bk_create_meta_box_save');
+
+function bk_create_meta_box_save( $post_id ) {
+
+  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+  return;
+
+  if ( !wp_verify_nonce( $_POST['bk_mtbox_function_nonce'], plugin_basename( __FILE__ ) ) )
+  return;
+
+  if ( 'page' == $_POST['post_type'] ) {
+    if ( !current_user_can( 'edit_page', $post_id ) )
+    return;
+  } else {
+    if ( !current_user_can( 'edit_post', $post_id ) )
+    return;
+  }
+  $book_price = $_POST['book_price'];
+  update_post_meta( $post_id, 'product_price', $book_price );
+  $book_author = $_POST['book_author'];
+  update_post_meta( $post_id, 'book_author', $book_author );
+  $book_publisher = $_POST['book_publisher'];
+  update_post_meta( $post_id, 'book_publisher', $book_publisher );
+}
