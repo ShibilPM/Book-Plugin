@@ -4,14 +4,14 @@ class create_meta_box
 {
 
 	function __construct() {
-
+	
 		add_action( 'add_meta_boxes', array( $this, 'bk_create_meta_box' ) );
 		add_action( 'save_post', array( $this, 'bk_create_meta_box_save' ) );
 
 	}
 
 	/***************************************************************
-   4. Creating a custom meta box to save book meta information
+        4. Creating a custom meta box to save book meta information
 	****************************************************************/
 
 	function bk_create_meta_box() {
@@ -74,7 +74,7 @@ class create_meta_box
 
 
   	$book_price = sanitize_text_field( $_POST['book_price'] );
-    update_post_meta( $post_id, 'book_price', $book_price );
+    	update_post_meta( $post_id, 'book_price', $book_price );
 
   	$book_author = sanitize_text_field( $_POST['book_author'] );
   	update_post_meta( $post_id, 'book_author', $book_author );
